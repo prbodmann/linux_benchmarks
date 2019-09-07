@@ -1,0 +1,16 @@
+#-----------------------------------------------------------
+# Vivado v2018.2 (64-bit)
+# SW Build 2258646 on Thu Jun 14 20:02:38 MDT 2018
+# IP Build 2256618 on Thu Jun 14 22:10:49 MDT 2018
+# Start of session at: Mon Aug 20 16:58:15 2018
+# Process ID: 23300
+# Current directory: /home/user/zed/zed.sdk/stringsearch/src
+# Command line: vivado
+# Log file: /home/user/zed/zed.sdk/stringsearch/src/vivado.log
+# Journal file: /home/user/zed/zed.sdk/stringsearch/src/vivado.jou
+#-----------------------------------------------------------
+start_gui
+open_project /home/user/Documents/radiation/radiation.xpr
+update_compile_order -fileset sources_1
+launch_sdk -workspace /home/user/Documents/radiation/radiation.sdk -hwspec /home/user/Documents/radiation/radiation.sdk/design_1_wrapper.hdf
+launch_sdk -workspace /home/user/Documents/radiation/radiation.sdk -hwspec /home/user/Documents/radiation/radiation.sdk/design_1_wrapper.hdf
