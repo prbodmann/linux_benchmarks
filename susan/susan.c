@@ -7,7 +7,7 @@ typedef float      TOTAL_TYPE; /* for my PowerPC accelerator only */
 
 /*#define FOPENB*/           /* uncomment if using djgpp gnu C for DOS or certain Win95 compilers */
 #define SEVEN_SUPP           /* size for non-max corner suppression; SEVEN_SUPP or FIVE_SUPP */
-#define MAX_CORNERS   15000  /* max corners per frame */
+#define MAX_CORNERS   150000  /* max corners per frame */
 
 /* ********** Leave the rest - but you may need to remove one or both of sys/file.h and _malloc.h lines */
 
@@ -1720,7 +1720,7 @@ char   filename [80],
 uchar  *in, *bp, *mid;
 float  dt=4.0;
 int    *r,count=0,cont=0,
-       argindex=6,
+       argindex=5,
        bt=20,
        principle=0,
        thin_post_proc=1,
@@ -1742,23 +1742,25 @@ CORNER_LIST corner_list;
     char header[20];
     FILE *golden;
     FILE *fout;
-    if ((golden = fopen(argv[5], "rb")) == NULL) {
-      fprintf(stderr, "%s: can't open %s\n", argv[0], argv[5]);
+    printf("lol\n");
+    if ((golden = fopen(argv[4], "rb")) == NULL) {
+      fprintf(stderr, "%s: can't open %s\n", argv[0], argv[4]);
       exit(EXIT_FAILURE);
     }
-    header[0]=fgetc(&golden);
-    header[1]=fgetc(&golden);
-
+    //printf("lol2\n");
+    header[0]=fgetc(golden);
+    header[1]=fgetc(golden);
+    //printf("lol2\n");
   //    printf("Image %s does not have binary PGM header.\n\r",inputfile);
    // printf("header %c %c\n\r",header[0],header[1]);
-    x_size = getint(&golden);
-    y_size = getint(&golden);
+    x_size = getint(golden);
+    y_size = getint(golden);
      uchar* golden_buf=malloc(x_size*y_size);
 //      printf("%d %d\n\r",x_size,y_size);
-    getint(&golden);
-    fread(&golden_buf,x_size*y_size,1,golden);
+    getint(golden);
+    fread(golden_buf,x_size*y_size,1,golden);
     fclose(golden);
-
+    //printf("lol3\n");
 
     while(1){
          pointer_index=0;
