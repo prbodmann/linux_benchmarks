@@ -1,0 +1,14 @@
+FILE1 = stringsearch.c
+
+CC=arm-linux-gnueabihf-gcc-4.7
+AS=arm-linux-gnueabihf-as
+LD=arm-linux-gnueabihf-ld
+AR=arm-linux-gnueabihf-gcc-ar-4.7
+
+all: search_large
+
+search_large: ${FILE1} Makefile.arm
+	$(CC) -static -O3 -o stringsearch ${FILE1}
+
+clean:
+	rm -rf search_small.arm search_large.arm m5op_arm.o output*
