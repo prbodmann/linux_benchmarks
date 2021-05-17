@@ -1,41 +1,22 @@
 LDFLAGS = -static -lm
-TARGET:=arm
-SIZE ?= 50000
-CFLAGS = -O3 -DMAXARRAY=${SIZE}
 
-CC.x86=gcc
-AS.x86=as
-LD.x86=ld
-AR.x86=ar
 
-CC.arm64=aarch64-linux-gnu-gcc
-AS.arm64=aarch64-linux-gnu-as
-LD.arm64=aarch64-linux-gnu-ld
-AR.arm64=aarch64-linux-gnu-ar
 
-CFLAGS.arm += -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard
-CC.arm=arm-linux-gnueabihf-gcc
-AS.arm=arm-linux-gnueabihf-as
-LD.arm=arm-linux-gnueabihf-ld
-AR.arm=arm-linux-gnueabihf-ar
+A9:CFLAGS += -mcpu=cortex-a9 -mfpu=vfpv4 -mfloat-abi=hard
+A9:CC=arm-linux-gnueabihf-gcc
 
-CFLAGS.armA5 += -mcpu=cortex-a5 -mfpu=vfpv4-d16 -mfloat-abi=hard
-CC.armA5=arm-linux-gnueabihf-gcc
-AS.armA5=arm-linux-gnueabihf-as
-LD.armA5=arm-linux-gnueabihf-ld
-AR.armA5=arm-linux-gnueabihf-ar
+a57:CC=aarch64-linux-gnu-gcc
+a57:CC_FLAGS = -Ofast -march=armv8-a -mcpu=cortex-a57 -floop-optimize -falign-loops -falign-labels -falign-functions -falign-jumps -fomit-frame-pointer -funroll-loops -lm
 
-CC:=${CC.${TARGET}}
-AS:=${AS.${TARGET}}
-LD:=${LD.${TARGET}}
-AR:=${AR.${TARGET}}
-CFLAGS += ${CFLAGS.${TARGET}}
+a53:CC=aarch64-linux-gnu-gcc
+a53:CC_FLAGS = -Ofast -march=armv8-a -mcpu=cortex-a53 -floop-optimize -falign-loops -falign-labels -falign-functions -falign-jumps -fomit-frame-pointer -funroll-loops -lm
 
-arm:
-	$(CC)  $(CFLAGS) $(LDFLAGS) -o qsort qsort.c -lm
+a53: all
+a57: all
+a9: all
 
-arm64:
-	$(CC)  $(CFLAGS) $(LDFLAGS) -o qsort qsort.c -lm
+all:  qsort.o
+	$(CC)  $(CC_FLAGS) $(LDFLAGS) -o qsort qsort.o 
 
 clean:
 	rm -rf *.o qsort output*

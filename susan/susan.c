@@ -1742,7 +1742,7 @@ CORNER_LIST corner_list;
     char header[20];
     FILE *golden;
     FILE *fout;
-    printf("lol\n");
+    //printf("lol\n");
     if ((golden = fopen(argv[4], "rb")) == NULL) {
       fprintf(stderr, "%s: can't open %s\n", argv[0], argv[4]);
       exit(EXIT_FAILURE);
@@ -1889,7 +1889,7 @@ CORNER_LIST corner_list;
 
         /* }}} */
           }
-
+        
           int index=0;
           int SDC_flag=0;
           //printf("16");

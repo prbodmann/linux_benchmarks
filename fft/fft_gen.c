@@ -13,9 +13,9 @@ void fft_float (
     float    *ImaginaryOut );
 int main(int argc, char** argv){
     time_t t;
-    int MAXSIZE=pow(2,atoi(argv[1]));
+    int MAXSIZE=1<<(atoi(argv[1]));
     int MAXWAVES=atoi(argv[2]);
-    printf("lol\n");
+    printf("lol %d\n",MAXSIZE);
     int *coeff=(int*)malloc(sizeof(int)*MAXWAVES);
     int *amp=(int*)malloc(sizeof(int)*MAXWAVES);
     float *RealIn=(float*)malloc(sizeof(float)*MAXSIZE);
@@ -25,7 +25,7 @@ int main(int argc, char** argv){
     int i,j;
     FILE* fd,out;
 
-    srand((unsigned) time(&t));
+    srand(1);
     for (i=0;i<MAXWAVES;i++){
         coeff[i]=rand() %1000;
         amp[i]=rand() %1000;
@@ -35,7 +35,7 @@ int main(int argc, char** argv){
             if(rand()%2){
                 RealIn[i]+=coeff[j]*cos(amp[j]*i);
             }else{
-                 RealIn[i]+=coeff[j]*sin(amp[j]*i);
+                RealIn[i]+=coeff[j]*sin(amp[j]*i);
             }
 
         }
@@ -45,6 +45,7 @@ int main(int argc, char** argv){
     fd =fopen("fft_input.bin","wb");
     fwrite(RealIn,sizeof(float),MAXSIZE,fd);
     fclose(fd);
+    printf("lol2 %d\n",MAXSIZE);
     fft_float (MAXSIZE,0,RealIn,ImagIn,RealOut,ImagOut);
     fd =fopen("fft_gold.bin","wb");
     fwrite(RealOut,sizeof(float),MAXSIZE,fd);

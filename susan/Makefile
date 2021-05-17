@@ -1,38 +1,29 @@
 LDFLAGS = -static -lm
 TARGET:=arm
-CFLAGS = -O3
 
 
-CC.arm64=aarch64-linux-gnu-gcc
-AS.arm64=aarch64-linux-gnu-as
-LD.arm64=aarch64-linux-gnu-ld
-AR.arm64=aarch64-linux-gnu-ar
+a9:CC_FLAGS += -mcpu=cortex-a9 -mfpu=vfpv4 -mfloat-abi=hard
+a9:CC=arm-linux-gnueabihf-gcc
 
-CFLAGS.arm += -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard
-CC.arm=arm-linux-gnueabihf-gcc
-AS.arm=arm-linux-gnueabihf-as
-LD.arm=arm-linux-gnueabihf-ld
-AR.arm=arm-linux-gnueabihf-ar
+a5:CC_FLAGS += -mcpu=cortex-a9 -mfpu=vfpv4 -mfloat-abi=hard
+a5:CC=arm-linux-gnueabihf-gcc
 
-CFLAGS.armA5 += -mcpu=cortex-a5 -mfpu=vfpv4-d16 -mfloat-abi=hard
-CC.armA5=arm-linux-gnueabihf-gcc
-AS.armA5=arm-linux-gnueabihf-as
-LD.armA5=arm-linux-gnueabihf-ld
-AR.armA5=arm-linux-gnueabihf-ar
+a57:CC=aarch64-linux-gnu-gcc
+a57:CC_FLAGS = -Ofast -march=armv8-a -mcpu=cortex-a57 -floop-optimize -falign-loops -falign-labels -falign-functions -falign-jumps -fomit-frame-pointer -funroll-loops -lm
 
-CC:=${CC.${TARGET}}
-AS:=${AS.${TARGET}}
-LD:=${LD.${TARGET}}
-AR:=${AR.${TARGET}}
-CFLAGS += ${CFLAGS.${TARGET}}
+a53:CC=aarch64-linux-gnu-gcc
+a53:CC_FLAGS = -Ofast -march=armv8-a -mcpu=cortex-a53 -floop-optimize -falign-loops -falign-labels -falign-functions -falign-jumps -fomit-frame-pointer -funroll-loops -lm
 
-all:susan_s susan_e susan_c
+a53: all
+a57: all
+a9: all
+a5:all	
 
-susan_s: susan.c
-	$(CC) $(CFLAGS) $(LDFLAGS) -o susan_s susan.c -lm
-susan_e: susan.c
-	$(CC) $(CFLAGS) $(LDFLAGS) -o susan_e susan.c -lm
-susan_c: susan.c
-	$(CC) $(CFLAGS) $(LDFLAGS) -o susan_c susan.c -lm
+all:susan
+susan: susan.c susan_gen.c
+	$(CC) $(CC_FLAGS) $(LDFLAGS) -o susan_gen susan_gen.c -lm
+	$(CC) $(CC_FLAGS) $(LDFLAGS) -o susan_s susan.c -lm
+	cp susan_s susan_e
+	cp susan_s susan_c
 clean:
-	rm -rf susan output*
+	rm -rf susan_* output*
