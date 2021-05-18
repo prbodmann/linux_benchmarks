@@ -33,25 +33,29 @@ from telnetlib import Telnet
 #################################################
 
 from threading import Timer
-USER="pi"
-PSSWD="1234_abc"
+USER="carol"
+PSSWD="R@diation"
 PATH="/home/" + USER + "/benchmarks/"
 #arg_dic={"qsort":" /tmp/benchmark/input_large.dat /tmp/benchmark/input_large.dat"
 arg_dic={"lud":" 1024 "+PATH+ "input_1024_th_1 "+PATH+"gold_1024_th_1",
+        "lud_small":" 512 "+PATH+ "input_512_th_1 "+PATH+"gold_512_th_1",
         "lavamd":" 5 "+PATH+"input_distance_1_5 "+PATH+"input_charges_1_5 "+PATH+"output_gold_1_5",
         "hotspot_64":" 256 256 100  "+PATH+"temp_256 "+PATH+"power_256 "+PATH+"gold_256",
         "l1_test":"",
         "fft":"21 "+PATH+"fft_input.bin "+PATH+"fft_gold.bin",
-        "qsort":"2000000 "+PATH+"qsort_input_2000000.bin "+PATH+"qsort_gold_2000000.bin "
+        "qsort":"2000000 "+PATH+"qsort_input_2000000.bin "+PATH+"qsort_gold_2000000.bin ",
+        "matmul_400": " "+PATH+"matmul_input_400.bin"+" "+PATH+"matmul_gold_400.bin 400"
 
         }
 mess_size_dic={
         "lud":5,
+        "lud_small":5,
         "lavamd":10,
         "hotspot_64":5,
         "l1_test":3,
         "fft":4,
-        "qsort":2
+        "qsort":2,
+        "matmul_400":4
         }
 
 
