@@ -15,15 +15,12 @@
 
 #define NUM_EXEC 1
 #define PI 3.1415926535897932384626433
-#ifndef MATRIX_SIZE
-#define MATRIX_SIZE 256 // matrix size
-#endif
-#define SIZE        ((MATRIX_SIZE)*(MATRIX_SIZE))
 
-float mA[MATRIX_SIZE][MATRIX_SIZE];
-float mB[MATRIX_SIZE][MATRIX_SIZE];
-float mCS0[MATRIX_SIZE][MATRIX_SIZE];
-float float_golden[MATRIX_SIZE][MATRIX_SIZE];
+int MATRIX_SIZE;
+float *mA;
+float *mB;
+float *mCS0;
+float *float_golden;
 int s;
 struct sockaddr_in server;
 unsigned int buffer[4];
@@ -94,21 +91,25 @@ int main(int argc, char **argv)
     int p = 0;
     int status_app;
     //int count = 0;
-    printf("%d",MATRIX_SIZE);
+    MATRIX_SIZE=atoi(argv[5]);
+    mA=(float*)malloc(sizeof(float)*MATRIX_SIZE*MATRIX_SIZE);   
+    mB=(float*)malloc(sizeof(float)*MATRIX_SIZE*MATRIX_SIZE);
+    mCS0=(float*)malloc(sizeof(float)*MATRIX_SIZE*MATRIX_SIZE);
+    float_golden=(float*)malloc(sizeof(float)*MATRIX_SIZE*MATRIX_SIZE);
     //XTime tStart, tEnd, endexec;
-    initInput(argv[3]);
+    
     initGold(argv[4]);
     while(1){
-    	status_app    = 0;
+        initInput(argv[3]);
     	//########### control_dut ###########
 
     	for (i=0; i<MATRIX_SIZE; i++)
     	{
     		for(j=0; j<MATRIX_SIZE; j++)
     		{
-    			mCS0[i][j] = 0.0;
+    			mCS0[i*MATRIX_SIZE+j] = 0.0;
     			for (k=0; k<MATRIX_SIZE; k++)
-    				mCS0[i][j] += mA[i][k] * mB[k][j];
+    				mCS0[i*MATRIX_SIZE+j] += mA[i*MATRIX_SIZE+k] * mB[k*MATRIX_SIZE+j];
     		}
     	}
     	//XTime_GetTime(&endexec);
@@ -124,9 +125,8 @@ int main(int argc, char **argv)
         	for(j=0; j<MATRIX_SIZE; j++)
         	{
 
-        		if((mCS0[i][j] != float_golden[i][j]))
+        		if((mCS0[i*MATRIX_SIZE+j] != float_golden[i*MATRIX_SIZE+j]))
         		{
-                    status_app = 1;
         			if(flag==0){
         				buffer[0] = 0xDD000000;
         				flag=1;
@@ -138,7 +138,7 @@ int main(int argc, char **argv)
 
         			buffer[1] = *((uint32_t*)&i);
         			buffer[2] = *((uint32_t*)&j);
-        			buffer[3] = *((uint32_t*)&mCS0[i][j]); // u32, float has 32 bits
+        			buffer[3] = *((uint32_t*)&mCS0[i*MATRIX_SIZE+j]); // u32, float has 32 bits
         			send_message(4);
 
         		}
@@ -148,7 +148,7 @@ int main(int argc, char **argv)
         //printf("end");
 
     	//########### control_dut ###########
-    	if (status_app == 0) // sem erros
+    	if (flag == 0) // sem erros
     	{
     		buffer[0] = APP_SUCCESS; //sem erros
     		send_message(1);

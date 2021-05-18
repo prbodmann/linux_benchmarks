@@ -30,4 +30,4 @@ all: ${OBJ} ${G_OBJ}
 %.o: %.c
 	$(CC) $(CC_FLAGS) -o $@ -c $<
 clean:
-	rm -rf *.o fft output*
+	rm -rf *.o fft output* gen

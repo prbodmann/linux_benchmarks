@@ -17,6 +17,8 @@ a9: all
 
 all:  qsort.o
 	$(CC)  $(CC_FLAGS) $(LDFLAGS) -o qsort qsort.o 
+%.o: %.c
+	$(CC) $(CC_FLAGS) -o $@ -c $<
 
 clean:
 	rm -rf *.o qsort output*

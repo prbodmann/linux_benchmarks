@@ -319,7 +319,7 @@ int main(int argc, char *argv[])
             fclose(fin);
 
         if ((golden=fopen(argv[5],"rb")) == NULL) {
-          fprintf(stderr, "%s: can't open %s\n", argv[0], "/home/default/benchmarks/golden.enc");
+          fprintf(stderr, "%s: can't open %s\n", argv[0], argv[5]);
           exit(EXIT_FAILURE);
         }
 
