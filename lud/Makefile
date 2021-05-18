@@ -6,13 +6,15 @@ a57:CC_FLAGS = -Ofast -march=armv8-a -mcpu=cortex-a57 -floop-optimize -falign-lo
 
 a53:CC=aarch64-linux-gnu-gcc
 a53:CC_FLAGS = -Ofast -march=armv8-a -mcpu=cortex-a53 -floop-optimize -falign-loops -falign-labels -falign-functions -falign-jumps -fomit-frame-pointer -funroll-loops -lm
+x86: CC=gcc
+x86:CC_FLAGS = -Ofast -floop-optimize -falign-loops -falign-labels -falign-functions -falign-jumps -fomit-frame-pointer -funroll-loops -lm
 
 PRECISION = 64                
 EXE_BASENAME=lud
 
 a53: all
 a57: all
-
+x86: all
 all: lud_gen lud_check
 
 lud_gen: lud_gen.c common.c

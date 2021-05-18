@@ -4,6 +4,10 @@ LDFLAGS = -static -lm
 SIZE ?= 18
 CFLAGS = -O3
 
+x86:CC=gcc
+x86:CC_FLAGS = -Ofast -floop-optimize -falign-loops -falign-labels -falign-functions -falign-jumps -fomit-frame-pointer -funroll-loops -lm
+
+
 A9:CFLAGS += -mcpu=cortex-a9 -mfpu=vfpv4 -mfloat-abi=hard
 A9:CC=arm-linux-gnueabihf-gcc
 
@@ -15,6 +19,7 @@ a53:CC_FLAGS = -Ofast -march=armv8-a -mcpu=cortex-a53 -floop-optimize -falign-lo
 a53: all
 a57: all
 a9: all
+x86: all	
 
 G_OBJ=fft_gen.o fftmisc.o  fourierf.o
 G_FILE=fft_gen.c fftmisc.c  fourierf.c
