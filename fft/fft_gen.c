@@ -14,8 +14,7 @@ void fft_float (
 int main(int argc, char** argv){
     time_t t;
     int MAXSIZE=1<<(atoi(argv[1]));
-    int MAXWAVES=atoi(argv[2]);
-    printf("lol %d\n",MAXSIZE);
+    int MAXWAVES=atoi(argv[2]);    
     int *coeff=(int*)malloc(sizeof(int)*MAXWAVES);
     int *amp=(int*)malloc(sizeof(int)*MAXWAVES);
     float *RealIn=(float*)malloc(sizeof(float)*MAXSIZE);
@@ -41,13 +40,13 @@ int main(int argc, char** argv){
         }
         ImagIn[i]=0;
     }
-
-    fd =fopen("fft_input.bin","wb");
+    sprintf(name,"fft_input_%d.bin",MAXSIZE);
+    fd =fopen(name,"wb");
     fwrite(RealIn,sizeof(float),MAXSIZE,fd);
     fclose(fd);
-    printf("lol2 %d\n",MAXSIZE);
+    sprintf(name,"fft_gold_%d.bin",MAXSIZE);
     fft_float (MAXSIZE,0,RealIn,ImagIn,RealOut,ImagOut);
-    fd =fopen("fft_gold.bin","wb");
+    fd =fopen(name,"wb");
     fwrite(RealOut,sizeof(float),MAXSIZE,fd);
     fwrite(ImagOut,sizeof(float),MAXSIZE,fd);
     fclose(fd);
