@@ -47,6 +47,8 @@ arg_dic={"lud":" 1024 "+PATH+ "input_1024_th_1 "+PATH+"gold_1024_th_1",
         "qsort":"2000000 "+PATH+"qsort_input_2000000.bin "+PATH+"qsort_gold_2000000.bin ",
         "qsort_small":"200000 "+PATH+"qsort_input_200000.bin "+PATH+"qsort_gold_200000.bin ",
         "matmul_400": " "+PATH+"matmul_input_400.bin"+" "+PATH+"matmul_gold_400.bin 400",
+        "matmul_checksum": " "+PATH+"matmul_input_400.bin"+" "+PATH+"matmul_gold_400.bin 400 matmul_crc_400.bin",
+        "lavamd_checksum":" 5 "+PATH+"input_distance_1_5 "+PATH+"input_charges_1_5 "+PATH+"output_gold_1_5",
         "matmul_600": " "+PATH+"matmul_input_600.bin"+" "+PATH+"matmul_gold_600.bin 600"
 
         }
@@ -61,9 +63,13 @@ mess_size_dic={
         "qsort":2,
         "qsort_small":2,
         "matmul_400":4,
+        "matmul_checksum":4,
         "matmul_600":4
         }
-
+crc_size_dic={
+        "matmul_checksum":4,
+        "lavamd_checksum":4
+        }
 
 switch_serial=None
 DD_flag=0;
@@ -285,7 +291,14 @@ def main():
                 #print("current2")
                 #print(current_DD_message)
                 #print("prev2")
-                #print(prev_DD_message)           
+                #print(prev_DD_message)
+            elif(string[:2]=="ee"):
+                for i in range(1,CRC_SIZE):
+                    current_DD_message+=read_word(data,i)
+                    #print(string)
+
+                write_logs(getTime() + " " +board_ip +" [PL] EE "+current_DD_message)
+
             else:
                 unexpectedOutputFunc()
     return
@@ -303,11 +316,13 @@ def tryMain():
     global DATA_SIZE
     global rest_args
     global subnet
+    global CRC_SIZE
 
     board_ip= sys.argv[1]
     pc_port = int(sys.argv[2])
     exec_code= sys.argv[3]   
     DATA_SIZE = mess_size_dic[exec_code]
+    CRC_SIZE= crc_size_dic[exec_code]
     switch_type= sys.argv[4]
     switch_ip=sys.argv[5] #change_env_1
     switch_port= int(sys.argv[6]) #change_env_1

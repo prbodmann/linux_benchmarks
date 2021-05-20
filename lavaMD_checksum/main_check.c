@@ -9,7 +9,7 @@
 #include "./kernel/kernel_cpu.h"
 #include<arpa/inet.h>
 #include<sys/socket.h>
-
+#include "checksum.h"
 
 void usage()
 {
@@ -23,6 +23,10 @@ int iteractions = 100000;
 int s;
 struct sockaddr_in server;
 unsigned int buffer[10];
+unsigned int crc_rv_cpu;       
+unsigned int crc_qv_cpu;
+unsigned int crc_gold_fv_cpu;
+
 void setup_socket(char* ip_addr, int port){
     s=socket(PF_INET, SOCK_DGRAM, 0);
     //memset(&server, 0, sizeof(struct sockaddr_in));
@@ -39,14 +43,31 @@ void send_message(size_t size){
     sendto(s,buffer,4*size,0,(struct sockaddr *)&server,sizeof(server));
 }
 
-
+void initCRC(char* input_file){
+    FILE* fp;
+    int i,j;
+    fp = fopen(input_file,"rb");
+    i=fread(&crc_rv_cpu,sizeof(unsigned int),1,fp);
+    if(i!=1){
+        exit(-1);
+    } 
+    i=fread(&crc_qv_cpu,sizeof(unsigned int),1,fp);
+    if(i!=1){
+        exit(-1);
+    }
+    i=fread(&crc_gold,sizeof(unsigned int),1,fp);
+    if(i!=1){
+        exit(-1);
+    }        
+    fclose(fp);
+}
 
 int main( int argc, char *argv [])
 {
     char * input_distance;
     char * input_charges;
     char * output_gold;
-
+    char* ptr; 
     int i, j, k, l, m, n;
 
     par_str par_cpu;
@@ -56,6 +77,7 @@ int main( int argc, char *argv [])
     fp* qv_cpu;
     FOUR_VECTOR* fv_cpu;
     FOUR_VECTOR* fv_cpu_GOLD;
+
     int nh;
 
     dim_cpu.boxes1d_arg = 1;
@@ -73,6 +95,7 @@ int main( int argc, char *argv [])
 
     unsigned int port = atoi(argv[2]);
     setup_socket(argv[1],port);
+
     //printf("Configuration used: cores = %d, boxes1d = %d\n", dim_cpu.cores_arg, dim_cpu.boxes1d_arg);
 
     par_cpu.alpha = 0.5;
@@ -197,7 +220,10 @@ int main( int argc, char *argv [])
                     qv_cpu,
                     fv_cpu);
 
-
+        buffer[0] = 0xEE000000;
+        buffer[1] = crc32buf((char*)qv_cpu,dim_cpu.space_mem2)^crc_qv_cpu;
+        buffer[2] = crc32buf((char*)rv_cpu,dim_cpu.space_mem)^crc_rv_cpu;
+        buffer[3] = crc32buf((char*)fv_cpu_GOLD,dim_cpu.space_mem)^crc_gold_fv_cpu;
         int flag=0;
         for(i=0; i<dim_cpu.space_elem; i++) {
             int thread_error=0;

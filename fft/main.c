@@ -95,8 +95,9 @@ int main(int argc, char *argv[]) {
     goldImag=(float*)malloc(sizeof(float)*MAXSIZE);
     //printf("socket set\n");
     initGold(argv[5]);
+      initInput(argv[4]);
     while(1){
-        initInput(argv[4]);
+      
 
                 
 

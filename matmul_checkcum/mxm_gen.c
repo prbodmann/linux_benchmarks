@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
+#include "checksum.h"
 
 #define PI 3.1415926535897932384626433
 
@@ -48,6 +49,7 @@ int main(int argc, char** argv){
     fwrite(mA,sizeof(float),MATRIX_SIZE*MATRIX_SIZE,fd);
     fwrite(mB,sizeof(float),MATRIX_SIZE*MATRIX_SIZE,fd);
     fclose(fd);
+    
     for (i=0; i<MATRIX_SIZE; i++)
         {
             for(j=0; j<MATRIX_SIZE; j++)
@@ -57,6 +59,20 @@ int main(int argc, char** argv){
                     mCS0[i*MATRIX_SIZE+j] += mA[i*MATRIX_SIZE+k] * mB[k*MATRIX_SIZE+j];
             }
         }
+    sprintf(name,"matmul_crc_%d.bin",MATRIX_SIZE);
+    fd =fopen(name,"wb");
+    if(fd==NULL){
+        printf("error at fopen 1.1\n");
+        exit(-1);
+    }
+    unsigned int crc_ma=crc32buf((char*)mA,sizeof(float)*MATRIX_SIZE*MATRIX_SIZE);
+    unsigned int crc_mb=crc32buf((char*)mB,sizeof(float)*MATRIX_SIZE*MATRIX_SIZE);
+    unsigned int crc_gold =crc32buf((char*)mCS0,sizeof(float)*MATRIX_SIZE*MATRIX_SIZE);
+    fwrite(&crc_ma,sizeof(unsigned int ),1,fd);
+    fwrite(&crc_mb,sizeof(unsigned int ),1,fd);
+    fwrite(&crc_gold,sizeof(unsigned int ),1,fd);
+    fclose(fd);    
+
     sprintf(name,"matmul_gold_%d.bin",MATRIX_SIZE);
     fd =fopen(name,"wb");
     fwrite(mCS0,sizeof(float),MATRIX_SIZE*MATRIX_SIZE,fd);

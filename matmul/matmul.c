@@ -99,8 +99,9 @@ int main(int argc, char **argv)
     //XTime tStart, tEnd, endexec;
     
     initGold(argv[4]);
+    initInput(argv[3]);
     while(1){
-        initInput(argv[3]);
+
     	//########### control_dut ###########
 
     	for (i=0; i<MATRIX_SIZE; i++)

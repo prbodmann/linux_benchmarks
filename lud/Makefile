@@ -24,7 +24,7 @@ lud_check: $(SOURCES_CHECK)
 	$(CC) -DPRECISION=$(PRECISION) common.c $(SOURCES_CHECK) -DLOGS -o $(EXE_BASENAME) $(CC_FLAGS) -static
 
 clean:
-	rm -f lud*gen lud*check lud*err_inj lud*timing
+	rm -f lud*gen lud*check lud*err_inj lud*timing lud
 
 # Display help message
 help:

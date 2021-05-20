@@ -1,8 +1,8 @@
 
 
 
-SOURCES_CHECK=main_check.c kernel/kernel_cpu.c 
-SOURCES_GEN=main.c kernel/kernel_cpu.c
+SOURCES_CHECK=main_check.c kernel/kernel_cpu.c checksum.c
+SOURCES_GEN=main.c kernel/kernel_cpu.c checksum.c
 APP_NAME=lavamd
 x86: CC=gcc
 x86:CC_FLAGS = -Ofast -floop-optimize -falign-loops -falign-labels -falign-functions -falign-jumps -fomit-frame-pointer -funroll-loops -lm

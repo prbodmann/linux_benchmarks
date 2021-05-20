@@ -13,6 +13,7 @@ void fft_float (
     float    *ImaginaryOut );
 int main(int argc, char** argv){
     time_t t;
+    char name[2000];
     int MAXSIZE=1<<(atoi(argv[1]));
     int MAXWAVES=atoi(argv[2]);    
     int *coeff=(int*)malloc(sizeof(int)*MAXWAVES);

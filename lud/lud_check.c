@@ -100,9 +100,9 @@ main ( int argc, char *argv[] )
     }
 
     fread(gold, sizeof(FP) * n * n, 1, f_gold);
+    fread(m, sizeof(FP) * n * n, 1, f_a);
     while(1) {
-        rewind(f_a);
-        fread(m, sizeof(FP) * n * n, 1, f_a);
+        
         
 
         lud_omp(m, matrix_dim);

@@ -10,7 +10,11 @@
 #include <linux/perf_event.h>
 #include <asm/unistd.h>
 #include<sys/socket.h>
-
+#include "checksum.h"
+#ifndef stddef
+#include <stddef.h>
+#define stddef
+#endif
 #define MOD 1000
 
 #define NUM_EXEC 1
@@ -21,6 +25,10 @@ float *mA;
 float *mB;
 float *mCS0;
 float *float_golden;
+unsigned int crc_ma;
+unsigned int crc_mb;
+unsigned int crc_gold;
+
 int s;
 struct sockaddr_in server;
 unsigned int buffer[4];
@@ -77,6 +85,25 @@ void initInput(char* input_file){
     }
     fclose(fp);
 }
+void initCRC(char* input_file){
+    FILE* fp;
+    int i,j;
+    fp = fopen(input_file,"rb");
+    i=fread(&crc_ma,sizeof(unsigned int),1,fp);
+    if(i!=1){
+        exit(-1);
+    } 
+    i=fread(&crc_mb,sizeof(unsigned int),1,fp);
+    if(i!=1){
+        exit(-1);
+    }
+    i=fread(&crc_gold,sizeof(unsigned int),1,fp);
+    if(i!=1){
+        exit(-1);
+    }        
+    fclose(fp);
+}
+
 //---------------------------------------------------------------------------
 int main(int argc, char **argv)
 {
@@ -90,7 +117,10 @@ int main(int argc, char **argv)
     int k = 0;
     int p = 0;
     int status_app;
+
+
     //int count = 0;
+    initCRC(argv[6]);
     MATRIX_SIZE=atoi(argv[5]);
     mA=(float*)malloc(sizeof(float)*MATRIX_SIZE*MATRIX_SIZE);   
     mB=(float*)malloc(sizeof(float)*MATRIX_SIZE*MATRIX_SIZE);
@@ -119,6 +149,11 @@ int main(int argc, char **argv)
         // check for errors
     	//mCS0[10][20]--;
     	//mCS0[30][20]--;
+        buffer[0] = 0xEE000000;
+        buffer[1] = crc32buf((char*)mA,sizeof(float)*MATRIX_SIZE*MATRIX_SIZE)^crc_ma;
+        buffer[2] = crc32buf((char*)mB,sizeof(float)*MATRIX_SIZE*MATRIX_SIZE)^crc_mb;
+        buffer[3] = crc32buf((char*)float_golden,sizeof(float)*MATRIX_SIZE*MATRIX_SIZE)^crc_gold;
+        send_message(4);
     	int flag=0;
         for (i=0; i<MATRIX_SIZE; i++)
         {

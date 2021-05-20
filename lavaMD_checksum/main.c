@@ -6,6 +6,7 @@
 #include <string.h>
 #include "./main.h"
 #include "./kernel/kernel_cpu.h"
+#include "checksum.h"
 
 void usage()
 {

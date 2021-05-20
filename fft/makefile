@@ -26,7 +26,7 @@ G_FILE=fft_gen.c fftmisc.c  fourierf.c
 
 all: ${OBJ} ${G_OBJ}
 	$(CC) ${OBJ} -o fft ${LDFLAGS}
-	$(CC) ${G_OBJ} -o gen ${LDFLAGS}
+	$(CC) ${G_OBJ} -o fft_gen ${LDFLAGS}
 %.o: %.c
 	$(CC) $(CC_FLAGS) -o $@ -c $<
 clean:
