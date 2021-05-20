@@ -42,10 +42,12 @@ arg_dic={"lud":" 1024 "+PATH+ "input_1024_th_1 "+PATH+"gold_1024_th_1",
         "lavamd":" 5 "+PATH+"input_distance_1_5 "+PATH+"input_charges_1_5 "+PATH+"output_gold_1_5",
         "hotspot_64":" 256 256 100  "+PATH+"temp_256 "+PATH+"power_256 "+PATH+"gold_256",
         "l1_test":"",
-        "fft":"21 "+PATH+"fft_input.bin "+PATH+"fft_gold.bin",
+        "fft":"21 "+PATH+"fft_input_21.bin "+PATH+"fft_gold_21.bin",
+        "fft_small":"17 "+PATH+"fft_input_17.bin "+PATH+"fft_gold_17.bin",
         "qsort":"2000000 "+PATH+"qsort_input_2000000.bin "+PATH+"qsort_gold_2000000.bin ",
         "qsort_small":"200000 "+PATH+"qsort_input_200000.bin "+PATH+"qsort_gold_200000.bin ",
-        "matmul_400": " "+PATH+"matmul_input_400.bin"+" "+PATH+"matmul_gold_400.bin 400"
+        "matmul_400": " "+PATH+"matmul_input_400.bin"+" "+PATH+"matmul_gold_400.bin 400",
+        "matmul_600": " "+PATH+"matmul_input_600.bin"+" "+PATH+"matmul_gold_600.bin 600"
 
         }
 mess_size_dic={
@@ -55,8 +57,11 @@ mess_size_dic={
         "hotspot_64":5,
         "l1_test":3,
         "fft":4,
+        "fft_small":4,
         "qsort":2,
-        "matmul_400":4
+        "qsort_small":2,
+        "matmul_400":4,
+        "matmul_600":4
         }
 
 
