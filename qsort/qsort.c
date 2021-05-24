@@ -7,13 +7,14 @@
 #include<arpa/inet.h>
 #include<sys/socket.h>
 #include <sys/resource.h>
+#include <string.h>
 
 int s;
 
 unsigned int buffer[4];
 int MAXARRAY;
 
-double *distance;
+double *distance,*distance_temp;
 long long *temp_gold;
 struct sockaddr_in server;
 // TIMER instance
@@ -85,7 +86,7 @@ int main(int argc, char **argv)
     MAXARRAY=atoi(argv[3]);    
     unsigned int port = atoi(argv[2]);
     setup_socket(argv[1],port);
-    
+    distance_temp=(double*)malloc(sizeof(double)*MAXARRAY);
     distance=(double*)malloc(sizeof(double)*MAXARRAY);
     if(distance==NULL){
         printf("error malloc distance\n");
@@ -97,18 +98,18 @@ int main(int argc, char **argv)
         exit(1);
     }
     initGold(argv[5]);
-
+    initInput(argv[4]);
     while(1)
     {
-        initInput(argv[4]);
-
+        
+    	memcpy(distance_temp,distance,sizeof(double)*MAXARRAY);
         
         //printf("0\n");
 
         //status_app    = 0x00000000;
         //########### control_dut ###########
      
-        qsort(distance,MAXARRAY,sizeof(double),compare);
+        qsort(distance_temp,MAXARRAY,sizeof(double),compare);
         int num_SDCs = 0;
         for (i=0;i<MAXARRAY;i++)
         {

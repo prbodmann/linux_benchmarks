@@ -33,8 +33,8 @@ from telnetlib import Telnet
 #################################################
 
 from threading import Timer
-USER="carol"
-PSSWD="R@diation"
+USER="pi"
+PSSWD="1234_abc"
 PATH="/home/" + USER + "/benchmarks/"
 #arg_dic={"qsort":" /tmp/benchmark/input_large.dat /tmp/benchmark/input_large.dat"
 arg_dic={"lud":" 1024 "+PATH+ "input_1024_th_1 "+PATH+"gold_1024_th_1",
@@ -74,7 +74,7 @@ crc_size_dic={
 switch_serial=None
 DD_flag=0;
 NUM_TRIES=4
-
+SOCKET_TIMEOUT= 15
 log_outf = None # initialize log file descriptor
 
 
@@ -118,6 +118,7 @@ def start_app():
     global board_ip
     global exec_code
     global USER
+    global sock
     try:
         #tn = telnetlib.Telnet(board_ip,23,90) #change_env_2 (changing switch_port) #change_essential_1
         tn = telnetlib.Telnet(board_ip,23,30)
@@ -138,6 +139,11 @@ def start_app():
         message="pkill "+exec_code+"\n" #change_env_3
         tn.write(message.encode('ascii'))
         l=tn.read_very_eager()
+        sock.close()
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.bind((get_ip_address(), pc_port))
+        sock.settimeout(SOCKET_TIMEOUT) #change_essential_1
         #print(l)
         message="nohup "+PATH+""+exec_code+" "+get_ip_address()+" "+str(pc_port)+" "+ arg_dic[exec_code]+" &\n exit\n" #change_env_3
         print(message)
@@ -146,7 +152,7 @@ def start_app():
         
         
         l=tn.read_very_eager()
-        print(l)
+        #print(l)
         #tn.close()
     except OSError as e:
         print(e)
@@ -165,7 +171,7 @@ def repeatedErrors():
     current_DD_message=""
     write_logs(getTime() + " " +board_ip +" [INFO] Double DD, restarting application")
     start_app()
-
+    
     return
 
 def resetBoard():
@@ -259,6 +265,7 @@ def main():
             if(prev_DD_message==current_DD_message and prev_DD_message!=""):
                     #print("sao iguais\n")
                     repeatedErrors()
+
             string=read_word(data,0)
             #print(data)
             #print("current")
@@ -322,7 +329,10 @@ def tryMain():
     pc_port = int(sys.argv[2])
     exec_code= sys.argv[3]   
     DATA_SIZE = mess_size_dic[exec_code]
-    CRC_SIZE= crc_size_dic[exec_code]
+    try:
+        CRC_SIZE= crc_size_dic[exec_code]
+    except:
+        CRC_SIZE=0
     switch_type= sys.argv[4]
     switch_ip=sys.argv[5] #change_env_1
     switch_port= int(sys.argv[6]) #change_env_1
@@ -330,20 +340,15 @@ def tryMain():
     subnet = '.'.join(board_ip.split('.')[:3]) + '.1'
     #wd=Watchdog(30)
     s = switch.Switch(switch_type,switch_port,switch_ip, sleep_time) #change_env_1
-    tn = None
-
-    openLog()
-    resetBoard()
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    
-    
+    tn = None    
     a= get_ip_address()
-
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock.bind((get_ip_address(), pc_port))
-    sock.settimeout(15) #change_essential_1
-    
-    
+    sock.settimeout(SOCKET_TIMEOUT) #change_essential_1
+    openLog()
+    resetBoard()
+
     
     try:
         main()

@@ -26,7 +26,7 @@
 #include<arpa/inet.h>
 #include<sys/socket.h>
 #include "common.h"
-
+#include <string.h>
 
 static int do_verify = 0;
 int omp_num_threads = 1;
@@ -69,7 +69,7 @@ main ( int argc, char *argv[] )
     func_ret_t ret;
     const char *input_file = argv[4];
     const char *gold_file = argv[5];
-    FP *m, *gold;
+    FP *m, *gold, *m_input;
     stopwatch sw;
     FILE *f_a, *f_gold;
     int n = matrix_dim;
@@ -88,6 +88,7 @@ main ( int argc, char *argv[] )
         }
 
         m = (FP*) malloc(sizeof(FP)*n*n);
+        m_input = (FP*) malloc(sizeof(FP)*n*n);
         gold = (FP*) malloc(sizeof(FP)*n*n);
         //std::cout << "read...";
 
@@ -100,9 +101,9 @@ main ( int argc, char *argv[] )
     }
 
     fread(gold, sizeof(FP) * n * n, 1, f_gold);
-    fread(m, sizeof(FP) * n * n, 1, f_a);
+    fread(m_input, sizeof(FP) * n * n, 1, f_a);
     while(1) {
-        
+        memcpy(m,m_input,sizeof(FP)*n*n);
         
 
         lud_omp(m, matrix_dim);
