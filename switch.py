@@ -113,18 +113,13 @@ class Switch():
         cmd += port_default_cmd % ("On" if status == self.__ON else "Off")
         cmd += '&Apply=Apply\" '
         cmd += f'http://%s/tgi/iocontrol.tgi {self.__switch_ip}'
-        cmd += '-o /dev/null '
-        self.__reboot_status = self.__execute_command(cmd)
+        cmd += '-o /dev/null 2>/dev/null'
+        os.system(cmd)
+        self.__reboot_status = ErrorCodes.SUCCESS
         
     def __debug_switch(self, status):
         return
-    def __execute_command(cmd):
-        tmp_file = "/tmp/server_error_execute_command"
-        result = os.system(f"{cmd} 2>{tmp_file}")
-        with open(tmp_file) as err:
-            if len(err.readlines()) != 0 or result != 0:
-                return ErrorCodes.GENERAL_ERROR
-        return ErrorCodes.SUCCESS
+
 
 
 #s = Switch("192.168.1.100", 4)
