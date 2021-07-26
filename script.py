@@ -33,8 +33,8 @@ from telnetlib import Telnet
 #################################################
 
 from threading import Timer
-USER="pi"
-PSSWD="1234_abc"
+USER="carol"
+PSSWD="R@diation"
 PATH="/home/" + USER + "/benchmarks/"
 #arg_dic={"qsort":" /tmp/benchmark/input_large.dat /tmp/benchmark/input_large.dat"
 arg_dic={"lud":" 1024 "+PATH+ "input_1024_th_1 "+PATH+"gold_1024_th_1",
@@ -44,8 +44,8 @@ arg_dic={"lud":" 1024 "+PATH+ "input_1024_th_1 "+PATH+"gold_1024_th_1",
         "l1_test":"",
         "fft":"21 "+PATH+"fft_input_21.bin "+PATH+"fft_gold_21.bin",
         "fft_small":"17 "+PATH+"fft_input_17.bin "+PATH+"fft_gold_17.bin",
-        "qsort":"2000000 "+PATH+"qsort_input_2000000.bin "+PATH+"qsort_gold_2000000.bin ",
-        "qsort_small":"200000 "+PATH+"qsort_input_200000.bin "+PATH+"qsort_gold_200000.bin ",
+        "qsort":"2000000 "+PATH+"qsort_input_2000000.bin "+PATH+"qsort_gold_2000000.bin",
+        "qsort_small":"200000 "+PATH+"qsort_input_200000.bin "+PATH+"qsort_gold_200000.bin",
         "matmul_400": " "+PATH+"matmul_input_400.bin"+" "+PATH+"matmul_gold_400.bin 400",
         "matmul_checksum": " "+PATH+"matmul_input_400.bin"+" "+PATH+"matmul_gold_400.bin 400 matmul_crc_400.bin",
         "lavamd_checksum":" 5 "+PATH+"input_distance_1_5 "+PATH+"input_charges_1_5 "+PATH+"output_gold_1_5",
@@ -84,8 +84,9 @@ isAF = 0    #alive watchdog maquina de estados dut
 isDD = 0        #SDC
 double_DD=0
 prev_DD_message=""
+current_DD_message=""
 sock=None
-
+double_double_DD=0
 s=None
 
 switch_port=0
@@ -136,14 +137,9 @@ def start_app():
         #tn.write(message)
         
         l=tn.read_very_eager()
-        message="pkill "+exec_code+"\n" #change_env_3
+        message="pkill "+PATH+exec_code+"\n" #change_env_3
         tn.write(message.encode('ascii'))
         l=tn.read_very_eager()
-        sock.close()
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.bind((get_ip_address(), pc_port))
-        sock.settimeout(SOCKET_TIMEOUT) #change_essential_1
         #print(l)
         message="nohup "+PATH+""+exec_code+" "+get_ip_address()+" "+str(pc_port)+" "+ arg_dic[exec_code]+" &\n exit\n" #change_env_3
         print(message)
@@ -167,11 +163,18 @@ def start_app():
 def repeatedErrors():
     global prev_DD_message
     global current_DD_message
+    global double_double_DD
     prev_DD_message=""
     current_DD_message=""
     write_logs(getTime() + " " +board_ip +" [INFO] Double DD, restarting application")
-    start_app()
-    
+    if double_double_DD<4:
+        write_logs(getTime() + " " +board_ip +" [INFO] Double DD, restarting application")
+        double_double_DD+=1
+        start_app()
+    else:
+        write_logs(getTime() + " " +board_ip +" [INFO] Double \"Double DD\", restarting the board")
+        double_double_DD=0
+        resetBoard()
     return
 
 def resetBoard():
@@ -211,7 +214,7 @@ def write_logs(str):
     return
 
 def getTime():
-    return datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+    return datetime.now().strftime("%d-%m-%Y-%H-%M-%S")
 
 def openLog():
     global log_outf
