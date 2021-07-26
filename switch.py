@@ -7,27 +7,6 @@ from datetime import datetime
 import sys
 import requests
 import json
-from enum import Enum
-
-
-class ErrorCodes(Enum):
-    """
-    Error codes used to identify status in this test
-    """
-    SUCCESS = 0
-
-    # Codes for Machine class
-    WAITING = 1
-    REBOOTING = 2
-    BOOT_PROBLEM = 3
-    MAX_SEQ_REBOOT_REACHED = 4
-    TURN_ON = 5
-
-    # Codes for RebootMachine
-    GENERAL_ERROR = 6
-    HTTP_ERROR = 7
-    CONNECTION_ERROR = 8
-    TIMEOUT_ERROR = 9
 
 
 class Switch():
@@ -38,7 +17,6 @@ class Switch():
         self.__switch_port = switch_port
         self.__switch_model= switch_model
         self.__switch_ip = switch_ip
-        self.__reboot_status = ErrorCodes.SUCCESS
         self.__rebooting_sleep = rebooting_sleep
 
     def reset_board(self):
@@ -48,13 +26,11 @@ class Switch():
         time.sleep(self.__rebooting_sleep)
 
     def __select_command_on_switch(self, status):
-        if self.__switch_model == "default":
+        if self.__switch_model == "ip_power":
             self.__common_switch_command(status)
         elif self.__switch_model == "lindy":
-            #print("lindy\n")
             self.__lindy_switch(status)
         elif self.__switch_model == "debug":
-            #print("lindy\n")
             self.__debug_switch(status)
         else:
             raise ValueError("Incorrect switch switch_model")
@@ -90,20 +66,7 @@ class Switch():
             "Connection": "keep-alive",
             "Content-Length": "0",
         }
-
-        #print(url)
-        #print(headers)
-        try:
-            requests_status = requests.post(url, data=json.dumps(payload), headers=headers)
-            requests_status.raise_for_status()           
-        except requests.exceptions.HTTPError as http_error:
-            self.__reboot_status = ErrorCodes.HTTP_ERROR
-        except requests.exceptions.ConnectionError as connection_error:
-            self.__reboot_status = ErrorCodes.CONNECTION_ERROR
-        except requests.exceptions.Timeout as timeout_error:
-            self.__reboot_status = ErrorCodes.TIMEOUT_ERROR
-        except requests.exceptions.RequestException as general_error:
-            self.__reboot_status = ErrorCodes.GENERAL_ERROR
+        requests_status = requests.post(url, data=json.dumps(payload), headers=headers)
 
     def __common_switch_command(self, status):
         port_default_cmd = 'pw%1dName=&P6%1d=%%s&P6%1d_TS=&P6%1d_TC=&' % (
@@ -115,7 +78,6 @@ class Switch():
         cmd += f'http://%s/tgi/iocontrol.tgi {self.__switch_ip}'
         cmd += '-o /dev/null 2>/dev/null'
         os.system(cmd)
-        self.__reboot_status = ErrorCodes.SUCCESS
         
     def __debug_switch(self, status):
         return

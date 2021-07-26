@@ -2,10 +2,6 @@
 
 from __future__ import print_function
 
-#################################################
-#################### IMPORTS ####################
-#################################################
-
 from array import *
 import binascii
 from datetime import datetime
@@ -28,15 +24,9 @@ import struct
 import errno
 from telnetlib import Telnet
 
-#################################################
-############### GLOBAL VARIABLES ################
-#################################################
-
-from threading import Timer
-USER="carol"
-PSSWD="R@diation"
-PATH="/home/" + USER + "/benchmarks/"
-#arg_dic={"qsort":" /tmp/benchmark/input_large.dat /tmp/benchmark/input_large.dat"
+username=""
+user_password=""
+PATH="/home/" + username + "/benchmarks/"
 arg_dic={"lud":" 1024 "+PATH+ "input_1024_th_1 "+PATH+"gold_1024_th_1",
         "lud_small":" 512 "+PATH+ "input_512_th_1 "+PATH+"gold_512_th_1",
         "lavamd":" 5 "+PATH+"input_distance_1_5 "+PATH+"input_charges_1_5 "+PATH+"output_gold_1_5",
@@ -66,90 +56,55 @@ mess_size_dic={
         "matmul_checksum":4,
         "matmul_600":4
         }
-crc_size_dic={
-        "matmul_checksum":4,
-        "lavamd_checksum":4
-        }
+
 
 switch_serial=None
-DD_flag=0;
 NUM_TRIES=4
 SOCKET_TIMEOUT= 15
-log_outf = None # initialize log file descriptor
+log_outf = None 
 
-
-# initialize variables
-isAA = False    #alive indicando X execucoes com sucesso
-isAF = 0    #alive watchdog maquina de estados dut
-isDD = 0        #SDC
-double_DD=0
 prev_DD_message=""
 current_DD_message=""
 sock=None
 double_double_DD=0
-s=None
+power_switch=None
 
 switch_port=0
 
-#################################################
-#################### METHODS ####################
-#################################################
-def get_ip_address():
+def get_self_ip_address():
     global subnet
 
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    power_switch = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
-        s.connect((subnet, 1027))
+        power_switch.connect((subnet, 1027))
     except socket.error:
         return None
         
-    #return s.getsockname()[0]
-    return s.getsockname()[0] #change_env_3
-    #s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    #return socket.inet_ntoa(fcntl.ioctl(
-    #    s.fileno(),
-    #    0x8915,  # SIOCGIFADDR
-    #    struct.pack('256s', ifname[:15])
-    #)[20:24])
-
+    return power_switch.getsockname()[0] 
 
 
 def start_app():
-    global tn
     global board_ip
     global exec_code
-    global USER
+    global username
     global sock
     try:
-        #tn = telnetlib.Telnet(board_ip,23,90) #change_env_2 (changing switch_port) #change_essential_1
+       
         tn = telnetlib.Telnet(board_ip,23,30)
-        
-        
-        #change_env_2 Note that ZedBoard should terminate original telnet daemon and reset_board /usr/sbin/telnetd -p 23
-        tn.read_until(b"login: ",timeout=30)#change_env_2
-        tn.write(bytes(USER +"\n",'ascii'))#change_env_2
-        tn.read_until(b"Password:",timeout=30)#change_env_2
-        tn.write(bytes(PSSWD +"\n",'ascii'))#change_env_2
+        tn.read_until(b"login: ",timeout=30)
+        tn.write(bytes(username +"\n",'ascii'))
+        tn.read_until(b"Password:",timeout=30)
+        tn.write(bytes(user_password +"\n",'ascii'))
 
-
-        #message=b"nohup /tmp/benchmark/myloop \n"
-        #print(message)  
-        #tn.write(message)
-        
         l=tn.read_very_eager()
-        message="pkill "+PATH+exec_code+"\n" #change_env_3
+        message="pkill "+PATH+exec_code+"\n" 
         tn.write(message.encode('ascii'))
         l=tn.read_very_eager()
-        #print(l)
-        message="nohup "+PATH+""+exec_code+" "+get_ip_address()+" "+str(pc_port)+" "+ arg_dic[exec_code]+" &\n exit\n" #change_env_3
+        message="nohup "+PATH+""+exec_code+" "+get_self_ip_address()+" "+str(pc_port)+" "+ arg_dic[exec_code]+" &\n exit\n"
         print(message)
-        tn.write(message.encode('ascii'))
-        
-        
+        tn.write(message.encode('ascii'))       
         
         l=tn.read_very_eager()
-        #print(l)
-        #tn.close()
     except OSError as e:
         print(e)
         if(e.errno==errno.EHOSTUNREACH):
@@ -178,24 +133,21 @@ def repeatedErrors():
     return
 
 def resetBoard():
-    global wd
-    global DD_flag
     global prev_DD_message
     global current_DD_message
     global pc_port
     global sock
-    global s
+    global power_switch
     prev_DD_message=""
     current_DD_message=""
-    DD_flag=0
     write_logs(getTime() + " " +board_ip +" [INFO] BOARD HARD RESET...")
-    s.reset_board()
+    power_switch.reset_board()
     counter=0
     while(1):
         ret_value=start_app()
         if (ret_value!=0):
             if(counter==NUM_TRIES or ret_value==2):                
-                s.reset_board()
+                power_switch.reset_board()
                 counter=0
             else:
                 sleep(1)
@@ -214,7 +166,7 @@ def write_logs(str):
     return
 
 def getTime():
-    return datetime.now().strftime("%d-%m-%Y-%H-%M-%S")
+    return datetime.now().strftime("%d-%m-%Y-%H-%M-%s")
 
 def openLog():
     global log_outf
@@ -232,22 +184,17 @@ def unexpectedOutputFunc():
 
 
     write_logs(getTime() +" " +board_ip + " [INFO] unexpected output: " + string)
-    #isReconfigure = True
-
     return
 
 def read_word(data,pos):
     string=""
     for i in range(4*pos,4*(pos+1)):
-        #print("0x{:02x}".format(data[i])[2:])
         string="0x{:02x}".format(data[i])[2:]+string
     return string
 
 def main():
     global sock
     global string
-    global wd
-    global DD_flag
     global current_DD_message
     global prev_DD_message
     global DATA_SIZE
@@ -266,109 +213,58 @@ def main():
                 write_logs(getTime() + " " +board_ip +" [INFO] EXPERIMENT RESUMED")               
         else:
             if(prev_DD_message==current_DD_message and prev_DD_message!=""):
-                    #print("sao iguais\n")
+                    
                     repeatedErrors()
 
             string=read_word(data,0)
-            #print(data)
-            #print("current")
-            #print(len(current_DD_message))
-            #print("prev")
-            #print(len(prev_DD_message))
             if(string[:2]=="aa"):
                 write_logs(getTime() +" " +board_ip + " [PL] AA")
-                DD_flag=0
                 prev_DD_message=""
                 current_DD_message=""
             elif(string[:2]=="dd"):
-                #print(prev_DD_message+" - "+current_DD_message)
+                
                 prev_DD_message=current_DD_message[:]
 
                 current_DD_message=""
                 for i in range(1,DATA_SIZE):
-                    current_DD_message+=read_word(data,i)
-                    #print(string)
+                    current_DD_message+=read_word(data,i)                   
 
                 write_logs(getTime() + " " +board_ip +" [PL] DD "+current_DD_message)
-                #print(DD_flag)
+                
             elif(string[:2]=="cc"):
                 string=""
                 for i in range(1,DATA_SIZE):
                     string+=read_word(data,i)
-                    #print(string)
                 write_logs(getTime() + " " +board_ip +" [PL] CC "+string)
                 current_DD_message+=string
-                #print("current2")
-                #print(current_DD_message)
-                #print("prev2")
-                #print(prev_DD_message)
-            elif(string[:2]=="ee"):
-                for i in range(1,CRC_SIZE):
-                    current_DD_message+=read_word(data,i)
-                    #print(string)
-
-                write_logs(getTime() + " " +board_ip +" [PL] EE "+current_DD_message)
-
             else:
                 unexpectedOutputFunc()
     return
 
-def tryMain():
-
-    global exec_code
-    global sock
-    global s
-    global switch_port
-    global tn
-    global board_ip
-    global pc_port
-    global wd
-    global DATA_SIZE
-    global rest_args
-    global subnet
-    global CRC_SIZE
-
-    board_ip= sys.argv[1]
-    pc_port = int(sys.argv[2])
-    exec_code= sys.argv[3]   
-    DATA_SIZE = mess_size_dic[exec_code]
-    try:
-        CRC_SIZE= crc_size_dic[exec_code]
-    except:
-        CRC_SIZE=0
-    switch_type= sys.argv[4]
-    switch_ip=sys.argv[5] #change_env_1
-    switch_port= int(sys.argv[6]) #change_env_1
-    sleep_time= int(sys.argv[7]) #change_env_1
-    subnet = '.'.join(board_ip.split('.')[:3]) + '.1'
-    #wd=Watchdog(30)
-    s = switch.Switch(switch_type,switch_port,switch_ip, sleep_time) #change_env_1
-    tn = None    
-    a= get_ip_address()
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    sock.bind((get_ip_address(), pc_port))
-    sock.settimeout(SOCKET_TIMEOUT) #change_essential_1
-    openLog()
-    resetBoard()
-
-    
-    try:
-        main()
-    except KeyboardInterrupt as err:
-        write_logs(getTime() +" " +board_ip+ " [INFO] keyborad interruption. exiting...")
-        #wd.stop()
-        print(err)
-        sys.exit(0)
-    #except Exception as err:
-    #    print(err)
-    #    write_logs(getTime() + " [INFO] unexpected script interruption...")
-    #    isReconfigure = True
+board_ip= sys.argv[1]
+pc_port = int(sys.argv[2])
+exec_code= sys.argv[3]   
+DATA_SIZE = mess_size_dic[exec_code]
+switch_type= sys.argv[4]
+switch_ip=sys.argv[5] 
+switch_port= int(sys.argv[6])
+sleep_time= int(sys.argv[7])
+username=sys.argv[8]
+user_password=sys.argv[9]
+subnet = '.'.join(board_ip.split('.')[:3]) + '.1'
+power_switch = switch.Switch(switch_type,switch_port,switch_ip, sleep_time)   
+a= get_self_ip_address()
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+sock.bind((get_self_ip_address(), pc_port))
+sock.settimeout(SOCKET_TIMEOUT) 
+openLog()
+resetBoard()
 
 
-#serial_port = '/dev/boards/uart/1-1.2'
+try:
+    main()
+except KeyboardInterrupt as err:
+    write_logs(getTime() +" " +board_ip+ " [INFO] keyborad interruption. exiting...")
+    print(err)
 
-#configureZynq()
-
-while True:
-    tryMain()
