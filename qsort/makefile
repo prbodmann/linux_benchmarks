@@ -1,6 +1,10 @@
 LDFLAGS = -static -lm
 
 
+a72:CC=aarch64-linux-gnu-gcc
+a72:CC_FLAGS = -Ofast -march=armv8-a -mcpu=cortex-a72 -floop-optimize -falign-loops -falign-labels -falign-functions -falign-jumps -fomit-frame-pointer -funroll-loops -lm
+
+a72:all
 
 A9:CFLAGS += -mcpu=cortex-a9 -mfpu=vfpv4 -mfloat-abi=hard
 A9:CC=arm-linux-gnueabihf-gcc
