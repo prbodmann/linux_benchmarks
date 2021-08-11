@@ -26,7 +26,8 @@ from telnetlib import Telnet
 
 username=""
 user_password=""
-PATH="/home/" + username + "/benchmarks/"
+PATH="/home/" + username + "/benchmarks/" #path where the benchmarks are
+# arg_dic: a dicionary with the arguments specific for each benchmark
 arg_dic={"lud":" 1024 "+PATH+ "input_1024_th_1 "+PATH+"gold_1024_th_1",
         "lud_small":" 512 "+PATH+ "input_512_th_1 "+PATH+"gold_512_th_1",
         "lavamd":" 5 "+PATH+"input_distance_1_5 "+PATH+"input_charges_1_5 "+PATH+"output_gold_1_5",
@@ -42,6 +43,7 @@ arg_dic={"lud":" 1024 "+PATH+ "input_1024_th_1 "+PATH+"gold_1024_th_1",
         "matmul_600": " "+PATH+"matmul_input_600.bin"+" "+PATH+"matmul_gold_600.bin 600"
 
         }
+#mess_size_dic: a dicionary with each benchamrks error message size
 mess_size_dic={
         "lud":5,
         "lud_small":5,
@@ -70,19 +72,20 @@ double_double_DD=0
 power_switch=None
 
 switch_port=0
-
+# get_self_ip_address: gets the ip from the ethernet socket
 def get_self_ip_address():
     global subnet
 
-    power_switch = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    ip_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
-        power_switch.connect((subnet, 1027))
+        ip_socket.connect((subnet, 1027))
     except socket.error:
         return None
         
-    return power_switch.getsockname()[0] 
+    return ip_socket.getsockname()[0] 
 
-
+# start_app: starts the application via telnet. It sends the command line necesaary to run the benchmark withh all its arguments. it returns 0 if sucessfull, 
+#returns 1 if there is connection refused and returns 2 if the board is unreachable
 def start_app():
     global board_ip
     global exec_code
@@ -114,7 +117,7 @@ def start_app():
         print(e)        
         return 1
     return 0
-
+# repeatedErrors: if two equal errors are received in sequence. it kills and restart the application and if there is two double errors in sequence, it restart the application 
 def repeatedErrors():
     global prev_DD_message
     global current_DD_message
@@ -131,7 +134,7 @@ def repeatedErrors():
         double_double_DD=0
         resetBoard()
     return
-
+#resetBoard: restart the board by turn it off on the power switch
 def resetBoard():
     global prev_DD_message
     global current_DD_message
@@ -158,16 +161,16 @@ def resetBoard():
 
     write_logs(getTime() + " " +board_ip +" [INFO] EXPERIMENT RESUMED")
     return
-
+#write_logs: just write a string on the log file
 def write_logs(str):
     print(str, end = '\n')
     log_outf.write(str+'\n')
     log_outf.flush()
     return
-
+#getTime: returns a string representing the current time
 def getTime():
     return datetime.now().strftime("%d-%m-%Y-%H-%M-%s")
-
+#openLog: creates and opens the log file
 def openLog():
     global log_outf
     global exec_code
@@ -177,7 +180,7 @@ def openLog():
     log_outf = open(filename_inj, filemode_inj)
     write_logs(getTime() +" " +board_ip +" [INFO] starting radiation experiment...")
     return
-
+# unexpectedOutputFunc: if the message received is not either one of the valid ones, the function justs log it.
 def unexpectedOutputFunc():
     global isReconfigure
     global string
@@ -186,6 +189,7 @@ def unexpectedOutputFunc():
     write_logs(getTime() +" " +board_ip + " [INFO] unexpected output: " + string)
     return
 
+#read_word: reads one byte and formats it in an hex string
 def read_word(data,pos):
     string=""
     for i in range(4*pos,4*(pos+1)):
@@ -198,9 +202,9 @@ def main():
     global current_DD_message
     global prev_DD_message
     global DATA_SIZE
-    while True:        
-        printTimeout = True
-        
+
+    resetBoard()
+    while True:                
         try:
             data, addr = sock.recvfrom(4*DATA_SIZE)
         except socket.timeout:
@@ -241,30 +245,28 @@ def main():
                 unexpectedOutputFunc()
     return
 
-board_ip= sys.argv[1]
-pc_port = int(sys.argv[2])
-exec_code= sys.argv[3]   
+board_ip= sys.argv[1] # the DUT IP
+pc_port = int(sys.argv[2]) #the host port where is will receive the DUT messages
+exec_code= sys.argv[3]   # name of the benchamrk (should it be the same as the exec file on the DUT)
 DATA_SIZE = mess_size_dic[exec_code]
-switch_type= sys.argv[4]
-switch_ip=sys.argv[5] 
-switch_port= int(sys.argv[6])
-sleep_time= int(sys.argv[7])
-username=sys.argv[8]
-user_password=sys.argv[9]
+switch_type= sys.argv[4] # power switch type
+switch_ip=sys.argv[5] # power switch ip
+switch_port= int(sys.argv[6]) # power switch port where the power supply of the DUT is connected
+sleep_time= int(sys.argv[7]) # waiting time for the script. it should be larger enough for the DUT to boot
+username=sys.argv[8] # DUT username
+user_password=sys.argv[9]  # DUT username password
 subnet = '.'.join(board_ip.split('.')[:3]) + '.1'
-power_switch = switch.Switch(switch_type,switch_port,switch_ip, sleep_time)   
+power_switch = switch.Switch(switch_type,switch_port,switch_ip, sleep_time)   #creates a power switch object
 a= get_self_ip_address()
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # the UDP socket which receives the messages
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 sock.bind((get_self_ip_address(), pc_port))
 sock.settimeout(SOCKET_TIMEOUT) 
-openLog()
-resetBoard()
-
-
+openLog()DUT
 try:
     main()
 except KeyboardInterrupt as err:
-    write_logs(getTime() +" " +board_ip+ " [INFO] keyborad interruption. exiting...")
+    write_logs(getTime() +" " +board_ip+ " [INFO] keyboard interruption. exiting...")
     print(err)
 

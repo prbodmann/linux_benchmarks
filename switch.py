@@ -9,8 +9,9 @@ import requests
 import json
 
 
-class Switch():
-     # Switches status, only used in this class
+class Switch(): 
+
+     # Switches class. it is a container for the different power switches
     __ON = "ON"
     __OFF = "OFF"
     def __init__(self, switch_model, switch_port, switch_ip, rebooting_sleep):
@@ -19,13 +20,21 @@ class Switch():
         self.__switch_ip = switch_ip
         self.__rebooting_sleep = rebooting_sleep
 
-    def reset_board(self):
+    def reset_board(self): # it does the power cycle on the board
         self.off()
         time.sleep(1)
         self.on()
         time.sleep(self.__rebooting_sleep)
 
-    def __select_command_on_switch(self, status):
+    
+
+    def on(self):
+        self.__select_command_on_switch(self.__ON) #turns the configured power outlet on
+
+    def off(self):
+        self.__select_command_on_switch(self.__OFF) #turns the configured power outlet off
+
+    def __select_command_on_switch(self, status): #calls the specific message formating and message sending method, depending on the selected power switch
         if self.__switch_model == "ip_power":
             self.__common_switch_command(status)
         elif self.__switch_model == "lindy":
@@ -35,16 +44,7 @@ class Switch():
         else:
             raise ValueError("Incorrect switch switch_model")
 
-    def get_reboot_status(self):
-        return self.__reboot_status
-
-    def on(self):
-        self.__select_command_on_switch(self.__ON)
-
-    def off(self):
-        self.__select_command_on_switch(self.__OFF)
-
-    def __lindy_switch(self, status):
+    def __lindy_switch(self, status): # method for the lindy power switch, where it creates the message for turning on or off the power outlet
         to_change = "000000000000000000000000"
         led = f"{to_change[:(self.__switch_port - 1)]}1{to_change[self.__switch_port:]}"
 
@@ -68,7 +68,7 @@ class Switch():
         }
         requests_status = requests.post(url, data=json.dumps(payload), headers=headers)
 
-    def __common_switch_command(self, status):
+    def __common_switch_command(self, status):# method for the ip power power switch, where it creates the message for turning on or off the power outlet
         port_default_cmd = 'pw%1dName=&P6%1d=%%s&P6%1d_TS=&P6%1d_TC=&' % (
             self.__switch_port, self.__switch_port - 1, self.__switch_port - 1, self.__switch_port - 1)
 
@@ -79,7 +79,7 @@ class Switch():
         cmd += '-o /dev/null 2>/dev/null'
         os.system(cmd)
         
-    def __debug_switch(self, status):
+    def __debug_switch(self, status): # dummy power switch, used for off-beam setup testing
         return
 
 
