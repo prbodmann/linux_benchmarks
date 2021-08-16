@@ -65,7 +65,7 @@ def start_app():
 
         l=tn.read_very_eager()
         print(l)
-        message='pkill '+PATH+exec_code+'\nnohup '+PATH+exec_code+' '+get_self_ip_address()+' '+str(pc_port)+' '+ arg_dic[exec_code]+' &\nexit\n'
+        message='pkill '+PATH+exec_code+'\nnohup '+PATH+exec_code+' '+get_self_ip_address()+' '+str(pc_port)+' '+ arg_dic[exec_code]+' & \nexit\n'
         print(message)
         tn.write(bytes(message,'ascii'))       
         
