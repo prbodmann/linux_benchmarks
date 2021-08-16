@@ -58,18 +58,19 @@ def start_app():
     try:
        
         tn = telnetlib.Telnet(board_ip,23,30)
-        tn.read_until(b"login: ",timeout=30)
+        tn.read_until(b'ogin: ',timeout=30)
         tn.write(bytes(username +"\n",'ascii'))
-        tn.read_until(b"Password:",timeout=30)
+        tn.read_until(b'assword: ',timeout=30)
         tn.write(bytes(user_password +"\n",'ascii'))
 
         l=tn.read_very_eager()
         print(l)
-        message="pkill "+PATH+exec_code+"\nnohup "+PATH+exec_code+" "+get_self_ip_address()+" "+str(pc_port)+" "+ arg_dic[exec_code]+" &\n exit\n"
+        message='pkill '+PATH+exec_code+'\nnohup '+PATH+exec_code+' '+get_self_ip_address()+' '+str(pc_port)+' '+ arg_dic[exec_code]+' &\nexit\n'
         print(message)
-        tn.write(message.encode('ascii'))       
+        tn.write(bytes(message,'ascii'))       
         
         l=tn.read_very_eager()
+        tn.close()
         print(l)
     except OSError as e:
         print(e)
