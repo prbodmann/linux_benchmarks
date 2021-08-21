@@ -1,6 +1,16 @@
+OBJ = main.o fftmisc.o  fourierf.o
+FILE = main.c fftmisc.c  fourierf.c
+LDFLAGS = -static -lm
+SIZE ?= 18
+CFLAGS = -O3
+
+x86:CC=gcc
+x86:CC_FLAGS = -Ofast -floop-optimize -falign-loops -falign-labels -falign-functions -falign-jumps -fomit-frame-pointer -funroll-loops -lm
 
 
-# Suggested flags for thunderxs taken from prace 'Best Practice Guide - ARM64'
+A9:CFLAGS += -mcpu=cortex-a9 -mfpu=vfpv4 -mfloat-abi=hard
+A9:CC=arm-linux-gnueabihf-gcc
+
 a57:CC=aarch64-linux-gnu-gcc
 a57:CC_FLAGS = -Ofast -march=armv8-a -mcpu=cortex-a57 -floop-optimize -falign-loops -falign-labels -falign-functions -falign-jumps -fomit-frame-pointer -funroll-loops -lm
 
@@ -11,22 +21,18 @@ a72:CC=aarch64-linux-gnu-gcc
 a72:CC_FLAGS = -Ofast -march=armv8-a -mcpu=cortex-a72 -floop-optimize -falign-loops -falign-labels -falign-functions -falign-jumps -fomit-frame-pointer -funroll-loops -lm
 
 a72:all
-
 a53: all
 a57: all
-all:l1_test
-l1_test: l1_test.c
-	$(CC) $(CC_FLAGS) l1_test.c -o l1_test -lm -static
+a9: all
+x86: all	
 
+G_OBJ=fft_gen.o fftmisc.o  fourierf.o
+G_FILE=fft_gen.c fftmisc.c  fourierf.c
+
+all: ${OBJ} ${G_OBJ}
+	$(CC) ${OBJ} -o fft ${LDFLAGS}
+	$(CC) ${G_OBJ} -o fft_gen ${LDFLAGS}
+%.o: %.c
+	$(CC) $(CC_FLAGS) -o $@ -c $<
 clean:
-	rm -f l1_test
-
-# Display help message
-help:
-	@echo "make options: 'ARCH' and 'PRECISION'"
-	@echo "ARCH: 'generic', 'knc', 'thunderx2', 'a57'"
-	@echo "PRECISION: '32', '64'"
-	@echo "Default: ARCH=generic PRECISION=64"
-	@echo ""
-	@echo "Compiling for thunderx2 using single precision: make ARCH=thunderx2 PRECISION=32"
-	@echo "Compiling for knc using double precision: make ARCH=knc PRECISION=64"
+	rm -rf *.o fft output* gen

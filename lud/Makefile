@@ -1,5 +1,6 @@
 SOURCES_CHECK=lud_check.c lud_omp.c
-
+PRECISION = 64
+EXE_BASENAME=lud
 # General configuration
 a57:CC=aarch64-linux-gnu-gcc
 a57:CC_FLAGS = -Ofast -march=armv8-a -mcpu=cortex-a57 -floop-optimize -falign-loops -falign-labels -falign-functions -falign-jumps -fomit-frame-pointer -funroll-loops -lm
@@ -13,8 +14,7 @@ a72:CC=aarch64-linux-gnu-gcc
 a72:CC_FLAGS = -Ofast -march=armv8-a -mcpu=cortex-a72 -floop-optimize -falign-loops -falign-labels -falign-functions -falign-jumps -fomit-frame-pointer -funroll-loops -lm
 
 a72:all
-PRECISION = 64                
-EXE_BASENAME=lud
+
 
 a53: all
 a57: all
