@@ -37,7 +37,6 @@ int main(int argc, char** argv){
         printf("error at fopen 1\n");
         exit(-1);
     }
-    printf("lol\n");
     for (i=0;i<MATRIX_SIZE;i++){
         for (j=0;j<MATRIX_SIZE;j++){
             //printf("lol %d %d", i ,j);

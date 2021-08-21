@@ -24,42 +24,6 @@ import struct
 import errno
 from telnetlib import Telnet
 
-username=""
-user_password=""
-PATH="/home/" + username + "/benchmarks/" #path where the benchmarks are
-# arg_dic: a dicionary with the arguments specific for each benchmark
-arg_dic={"lud":" 1024 "+PATH+ "input_1024_th_1 "+PATH+"gold_1024_th_1",
-        "lud_small":" 512 "+PATH+ "input_512_th_1 "+PATH+"gold_512_th_1",
-        "lavamd":" 5 "+PATH+"input_distance_1_5 "+PATH+"input_charges_1_5 "+PATH+"output_gold_1_5",
-        "hotspot_64":" 256 256 100  "+PATH+"temp_256 "+PATH+"power_256 "+PATH+"gold_256",
-        "l1_test":"",
-        "fft":"21 "+PATH+"fft_input_21.bin "+PATH+"fft_gold_21.bin",
-        "fft_small":"17 "+PATH+"fft_input_17.bin "+PATH+"fft_gold_17.bin",
-        "qsort":"2000000 "+PATH+"qsort_input_2000000.bin "+PATH+"qsort_gold_2000000.bin",
-        "qsort_small":"200000 "+PATH+"qsort_input_200000.bin "+PATH+"qsort_gold_200000.bin",
-        "matmul_400": " "+PATH+"matmul_input_400.bin"+" "+PATH+"matmul_gold_400.bin 400",
-        "matmul_checksum": " "+PATH+"matmul_input_400.bin"+" "+PATH+"matmul_gold_400.bin 400 matmul_crc_400.bin",
-        "lavamd_checksum":" 5 "+PATH+"input_distance_1_5 "+PATH+"input_charges_1_5 "+PATH+"output_gold_1_5",
-        "matmul_600": " "+PATH+"matmul_input_600.bin"+" "+PATH+"matmul_gold_600.bin 600"
-
-        }
-#mess_size_dic: a dicionary with each benchamrks error message size
-mess_size_dic={
-        "lud":5,
-        "lud_small":5,
-        "lavamd":10,
-        "hotspot_64":5,
-        "l1_test":3,
-        "fft":4,
-        "fft_small":4,
-        "qsort":2,
-        "qsort_small":2,
-        "matmul_400":4,
-        "matmul_checksum":4,
-        "matmul_600":4
-        }
-
-
 switch_serial=None
 NUM_TRIES=4
 SOCKET_TIMEOUT= 15
@@ -91,23 +55,33 @@ def start_app():
     global exec_code
     global username
     global sock
+    global PATH
+    global arg_dic
     try:
        
-        tn = telnetlib.Telnet(board_ip,23,30)
-        tn.read_until(b"login: ",timeout=30)
-        tn.write(bytes(username +"\n",'ascii'))
-        tn.read_until(b"Password:",timeout=30)
-        tn.write(bytes(user_password +"\n",'ascii'))
+        tn = telnetlib.Telnet(board_ip,timeout=30)
+        tn.read_until(b'ogin: ',timeout=30)
+        tn.write(username.encode('ascii') +b'\n')
+        l=tn.read_very_eager()
+        print(l)
+        tn.read_until(b'assword: ',timeout=30)
+        tn.write(user_password.encode('ascii') +b'\n')
+        tn.read_until(b'$ ',timeout=30)       
 
+        message='pkill '+exec_code+'\r\n'
+        print(message)        
+        tn.write(message.encode('ascii')) 
         l=tn.read_very_eager()
-        message="pkill "+PATH+exec_code+"\n" 
-        tn.write(message.encode('ascii'))
+        print(l)
+    
+        message2='nohup '+PATH+exec_code+' '+get_self_ip_address()+' '+str(pc_port)+' '+ arg_dic[exec_code]+' &\r\n'
+        print(message2)
+        tn.write(message2.encode('ascii'))
         l=tn.read_very_eager()
-        message="nohup "+PATH+""+exec_code+" "+get_self_ip_address()+" "+str(pc_port)+" "+ arg_dic[exec_code]+" &\n exit\n"
-        print(message)
-        tn.write(message.encode('ascii'))       
-        
-        l=tn.read_very_eager()
+        print(l)
+        sleep(0.1)
+        tn.close()
+ 
     except OSError as e:
         print(e)
         if(e.errno==errno.EHOSTUNREACH):
@@ -163,20 +137,20 @@ def resetBoard():
     return
 #write_logs: just write a string on the log file
 def write_logs(str):
-    print(str, end = '\n')
-    log_outf.write(str+'\n')
+    print(str, end = "\n")
+    log_outf.write(str+"\n")
     log_outf.flush()
     return
 #getTime: returns a string representing the current time
 def getTime():
-    return datetime.now().strftime("%d-%m-%Y-%H-%M-%s")
+    return datetime.now().strftime("%d-%m-%Y-%H-%M-%S")
 #openLog: creates and opens the log file
 def openLog():
     global log_outf
     global exec_code
     date=getTime()
-    filename_inj = "./logs/"+exec_code+'/log'+'_' + date +"_" +board_ip+'.txt'
-    filemode_inj = 'a'
+    filename_inj = "./logs/"+exec_code+"/log"+"_" + date +"_" +board_ip+".txt"
+    filemode_inj = "a"
     log_outf = open(filename_inj, filemode_inj)
     write_logs(getTime() +" " +board_ip +" [INFO] starting radiation experiment...")
     return
@@ -245,6 +219,22 @@ def main():
                 unexpectedOutputFunc()
     return
 
+#mess_size_dic: a dicionary with each benchamrks error message size
+mess_size_dic={
+        "lud":5,
+        "lud_small":5,
+        "lavamd":10,
+        "hotspot_64":5,
+        "l1_test":3,
+        "fft":4,
+        "fft_small":4,
+        "qsort":2,
+        "qsort_small":2,
+        "matmul_400":4,
+        "matmul_checksum":4,
+        "matmul_600":4
+        }
+
 board_ip= sys.argv[1] # the DUT IP
 pc_port = int(sys.argv[2]) #the host port where is will receive the DUT messages
 exec_code= sys.argv[3]   # name of the benchamrk (should it be the same as the exec file on the DUT)
@@ -255,7 +245,27 @@ switch_port= int(sys.argv[6]) # power switch port where the power supply of the 
 sleep_time= int(sys.argv[7]) # waiting time for the script. it should be larger enough for the DUT to boot
 username=sys.argv[8] # DUT username
 user_password=sys.argv[9]  # DUT username password
-subnet = '.'.join(board_ip.split('.')[:3]) + '.1'
+PATH="/home/" + username + "/benchmarks/" #path where the benchmarks are
+# arg_dic: a dicionary with the arguments specific for each benchmark.
+#this dictionary must stay here because PATH depends on the "username" argument
+arg_dic={"lud":"1024 "+PATH+ "input_1024_th_1 "+PATH+"gold_1024_th_1",
+        "lud_small":"512 "+PATH+ "input_512_th_1 "+PATH+"gold_512_th_1",
+        "lavamd":"5 "+PATH+"input_distance_1_5 "+PATH+"input_charges_1_5 "+PATH+"output_gold_1_5",
+        "hotspot_64":"256 256 100  "+PATH+"temp_256 "+PATH+"power_256 "+PATH+"gold_256",
+        "l1_test":"",
+        "fft":"21 "+PATH+"fft_input_21.bin "+PATH+"fft_gold_21.bin",
+        "fft_small":"17 "+PATH+"fft_input_17.bin "+PATH+"fft_gold_17.bin",
+        "qsort":"2000000 "+PATH+"qsort_input_2000000.bin "+PATH+"qsort_gold_2000000.bin",
+        "qsort_small":"200000 "+PATH+"qsort_input_200000.bin "+PATH+"qsort_gold_200000.bin",
+        "matmul_400": PATH+"matmul_input_400.bin"+" "+PATH+"matmul_gold_400.bin 400",
+        "matmul_checksum": PATH+"matmul_input_400.bin"+" "+PATH+"matmul_gold_400.bin 400 matmul_crc_400.bin",
+        "lavamd_checksum":"5 "+PATH+"input_distance_1_5 "+PATH+"input_charges_1_5 "+PATH+"output_gold_1_5",
+        "matmul_600": PATH+"matmul_input_600.bin"+" "+PATH+"matmul_gold_600.bin 600"
+
+        }
+
+
+subnet = ".".join(board_ip.split(".")[:3]) + ".1"
 power_switch = switch.Switch(switch_type,switch_port,switch_ip, sleep_time)   #creates a power switch object
 a= get_self_ip_address()
 
@@ -263,10 +273,9 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # the UDP socket which r
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 sock.bind((get_self_ip_address(), pc_port))
 sock.settimeout(SOCKET_TIMEOUT) 
-openLog()DUT
+openLog()
 try:
     main()
 except KeyboardInterrupt as err:
-    write_logs(getTime() +" " +board_ip+ " [INFO] keyboard interruption. exiting...")
+    
     print(err)
-
